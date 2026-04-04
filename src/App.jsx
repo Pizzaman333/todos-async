@@ -1,11 +1,14 @@
-// src/App.jsx
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchTodos, addTodo, toggleTodo, deleteTodo, setFilter } from './todoSlice';
+import { fetchTodos, addTodo, toggleTodo, deleteTodo, setFilter, editTodo } from './todoSlice';
 import './App.scss';
 
 function App() {
   const [text, setText] = useState('');
+
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
+
   const dispatch = useDispatch();
   
   const { items, status, filter } = useSelector((state) => state.todos);
@@ -16,12 +19,29 @@ function App() {
     }
   }, [status, dispatch]);
 
+  const startEditing = (todo) => {
+    setEditingId(todo.id);
+    setEditText(todo.text);
+  };
+
   const handleAddTodo = (e) => {
     e.preventDefault();
     if (text.trim()) {
       dispatch(addTodo(text));
       setText('');
     }
+  };
+
+  const handleSaveEdit = (id) => {
+    if (editText.trim()) {
+      dispatch(editTodo({ id, text: editText }));
+      setEditingId(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditText('');
   };
 
   const filteredItems = items.filter((todo) => {
@@ -71,17 +91,35 @@ function App() {
       <ul className="todo-list">
         {filteredItems.map((todo) => (
           <li key={todo.id} className="todo-item">
-            <input 
-              type="checkbox" 
-              checked={todo.completed} 
-              onChange={() => dispatch(toggleTodo(todo))}
-            />
-            <span className={`todo-text ${todo.completed ? 'completed' : ''}`}>
-              {todo.text}
-            </span>
-            <button className="delete-btn" onClick={() => dispatch(deleteTodo(todo.id))}>
-              Delete
-            </button>
+            
+            {editingId === todo.id ? (
+              <div className="edit-mode">
+                <input 
+                  type="text" 
+                  value={editText} 
+                  onChange={(e) => setEditText(e.target.value)}
+                  autoFocus
+                />
+                <button className="save-btn" onClick={() => handleSaveEdit(todo.id)}>Save</button>
+                <button className="cancel-btn" onClick={handleCancelEdit}>Cancel</button>
+              </div>
+            ) : (
+              <>
+                <input 
+                  type="checkbox" 
+                  checked={todo.completed} 
+                  onChange={() => dispatch(toggleTodo(todo))}
+                />
+                <span className={`todo-text ${todo.completed ? 'completed' : ''}`}>
+                  {todo.text}
+                </span>
+                
+                <div className="actions">
+                  <button className="edit-btn" onClick={() => startEditing(todo)}>Edit</button>
+                  <button className="delete-btn" onClick={() => dispatch(deleteTodo(todo.id))}>Delete</button>
+                </div>
+              </>
+            )}
           </li>
         ))}
       </ul>

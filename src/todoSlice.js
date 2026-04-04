@@ -28,6 +28,13 @@ export const deleteTodo = createAsyncThunk('todos/deleteTodo', async (id) => {
   return id; 
 });
 
+export const editTodo = createAsyncThunk('todos/editTodo', async ({ id, text }) => {
+  const response = await axios.put(`${API_URL}/${id}`, { 
+    text 
+  });
+  return response.data;
+});
+
 const todoSlice = createSlice({
   name: 'todos',
   initialState: {
@@ -63,6 +70,12 @@ const todoSlice = createSlice({
       })
       .addCase(deleteTodo.fulfilled, (state, action) => {
         state.items = state.items.filter(todo => todo.id !== action.payload);
+      })
+      .addCase(editTodo.fulfilled, (state, action) => {
+        const index = state.items.findIndex(todo => todo.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index].text = action.payload.text;
+        }
       });
   }
 });

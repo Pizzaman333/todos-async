@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchTodos, addTodo, toggleTodo, deleteTodo, setFilter, editTodo } from './todoSlice';
+import { selectFilteredTodos, selectTodoFilter, selectTodoStatus } from './todoSelectors';
 import './App.scss';
 
 function App() {
@@ -10,8 +11,9 @@ function App() {
   const [editText, setEditText] = useState('');
 
   const dispatch = useDispatch();
-  
-  const { items, status, filter } = useSelector((state) => state.todos);
+  const status = useSelector(selectTodoStatus);
+  const filter = useSelector(selectTodoFilter);
+  const filteredItems = useSelector(selectFilteredTodos);
 
   useEffect(() => {
     if (status === 'idle') {
@@ -43,12 +45,6 @@ function App() {
     setEditingId(null);
     setEditText('');
   };
-
-  const filteredItems = items.filter((todo) => {
-    if (filter === 'active') return !todo.completed;
-    if (filter === 'completed') return todo.completed;
-    return true;  
-  });
 
   return (
     <div className="todo-app">
